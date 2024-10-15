@@ -3,9 +3,11 @@ package com.spring_boot.spring_boot_tutorial.controller;
 import com.spring_boot.spring_boot_tutorial.dto.ClubDto;
 import com.spring_boot.spring_boot_tutorial.models.Club;
 import com.spring_boot.spring_boot_tutorial.service.ClubService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,8 +39,12 @@ public class ClubController {
     }
 
     @PostMapping("/clubs/new")
-    public String saveClub(@ModelAttribute("club") Club club){
-        clubService.saveClub(club);
+    public String saveClub(@Valid @ModelAttribute("club") ClubDto clubDto, BindingResult result, Model model){
+        if(result.hasErrors()){
+            model.addAttribute("club", clubDto);
+            return "clubs-create";
+        }
+        clubService.saveClub(clubDto);
         return "redirect:/clubs";
     }
 
@@ -50,7 +56,12 @@ public class ClubController {
     }
 
     @PostMapping("/clubs/{clubId}/edit")
-    public String updateClub(@PathVariable("clubId") Long clubId, @ModelAttribute("club") ClubDto club){
+    public String updateClub(@PathVariable("clubId") Long clubId,
+                             @Valid @ModelAttribute("club") ClubDto club,
+                             BindingResult result){
+        if(result.hasErrors()){
+            return "clubs-edit";
+        }
         club.setId(clubId);
         clubService.updateClub(club);
         return "redirect:/clubs";
